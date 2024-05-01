@@ -10,9 +10,6 @@ st.write(
     """
 )
 
-name_on_order = st.text_input('Name on Smoothie: ')
-st.write('The name on your Smoothie will be: ', name_on_order)
-
 cnx = st.connection("snowflake")
 session = cnx.session()
 
@@ -21,31 +18,19 @@ my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT
 pd_df = my_dataframe.to_pandas()
 st.dataframe(pd_df)
 
-ingredients_list = st.multiselect ('Choose up to 5 ingredients:', my_dataframe,max_selections = 5)
+# Define the orders
+orders = [
+    ('Kevin', 'Apples, Lime, Ximenia', False, 7976616299844859825),
+    ('Divya', 'Dragon Fruit, Guava, Figs, Jackfruit, Blueberries', True, -6112358379204300652),
+    ('Xi', 'Vanilla Fruit, Nectarine', True, 1016924841131818535)
+]
 
-if ingredients_list:
-  
-    ingredients_string = ''
-    
-    for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen +' '
-
-        search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        if search_on is not None:
-            st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
-            st.subheader(fruit_chosen + ' Nutrition Information')
-            fruityvice_response = requests.get("https://fruityvice.com/api/fruit/" + search_on)
-            fv_df = st.dataframe(data=fruityvice_response.json(),use_container_width=True)
-        else:
-            st.write('No search value found for ', fruit_chosen, '.')
-
-    my_insert_stmt = "insert into smoothies.public.orders(ingredients,name_on_order) values (:1, :2)"
-    
-    time_to_insert = st.button('Submit Order')
-    
-    if time_to_insert:
-        # Pass parameters as a list
-        params = [ingredients_string, name_on_order]
-        
+# Insert the orders into the database
+for order in orders:
+    name_on_order, ingredients, order_filled, hash_ing = order
+    if ingredients:  # Ensure ingredients is not None or empty
+        my_insert_stmt = "INSERT INTO ORDERS (name_on_order, ingredients, order_filled, hash_ing) VALUES (:1, :2, :3, :4)"
+        params = [name_on_order, ingredients, order_filled, hash_ing]
         session.sql(my_insert_stmt, params).collect()
-        st.success('Your Smoothie is ordered!', icon="✅")
+
+st.success('Orders have been created!', icon="✅")
