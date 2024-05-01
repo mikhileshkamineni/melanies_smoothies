@@ -31,10 +31,8 @@ if ingredients_list:
     time_to_insert = st.button('Submit Order')
     
     if time_to_insert:
-        # Print the variables and SQL statement before execution
-        st.write(f"ingredients_string: {ingredients_string}")
-        st.write(f"name_on_order: {name_on_order}")
-        st.write(f"SQL statement: {my_insert_stmt}")
+        # Pass parameters as a dictionary
+        params = {':1': ingredients_string, ':2': name_on_order}
         
-        session.sql(my_insert_stmt, ingredients_string, name_on_order).collect()
+        session.sql(my_insert_stmt, params).collect()
         st.success('Your Smoothie is ordered!', icon="✅")
