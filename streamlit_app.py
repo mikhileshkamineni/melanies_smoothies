@@ -35,4 +35,4 @@ if ingredients_list:
         params = [ingredients_string, name_on_order]
         
         session.sql(my_insert_stmt, params).collect()
-        st.success('Your Smoothie is ordered!', icon="✅")
+        st.success('Your Smoothie is ordered!', icon="✅", name_on_order)
